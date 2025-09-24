@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom right, #f0f4ff, #d9e6f9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        form {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1d4ed8;
+            font-size: 28px;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 60px;
+            box-sizing: border-box;
+        }
+
+        .show-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #1d4ed8;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #3b82f6, #ef4444);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="submit"]:hover { opacity: 0.9; }
+
+        p {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        a {
+            color: #ef4444;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover { text-decoration: underline; }
+
+        .error-message {
+            color: #b91c1c;
+            font-size: 13px;
+            margin-top: -8px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        /* Flash message styles */
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .flash-message.error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
+
+        .flash-message.success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .flash-message.info {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST" id="registerForm">
+        <h2>Register for Quizzer 📝</h2>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <label for="first_name">First Name :</label>
+        <input type="text" name="first_name" placeholder="First Name" required>
+
+        <label for="last_name">Last Name :</label>
+        <input type="text" name="last_name" placeholder="Last Name" required>
+
+        <label for="username">Username :</label>
+        <input type="text" name="username" placeholder="Username" required>
+
+        <label for="email">Email :</label>
+        <input type="email" name="email" placeholder="Email" required>
+
+        <label for="password">Password :</label>
+        <div class="password-wrapper">
+            <input type="password" name="password" id="password" placeholder="Password" required>
+            <button type="button" class="show-btn" onclick="togglePassword('password', this)">Show</button>
+        </div>
+
+        <label for="confirm_password">Confirm Password :</label>
+        <div class="password-wrapper">
+            <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" required>
+            <button type="button" class="show-btn" onclick="togglePassword('confirm_password', this)">Show</button>
+        </div>
+
+        <div id="passwordError" class="error-message">Passwords do not match.</div>
+
+        <input type="submit" value="Register">
+
+        <p>Already have an account? <a href="/login">Login</a></p>
+    </form>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        const passwordError = document.getElementById('passwordError');
+
+        let userHasInteracted = false;
+
+        confirmPassword.addEventListener('input', () => {
+            userHasInteracted = true;
+            checkPasswordMatch();
+        });
+
+        password.addEventListener('input', () => {
+            if (userHasInteracted) checkPasswordMatch();
+        });
+
+        function checkPasswordMatch() {
+            if (password.value && confirmPassword.value && password.value !== confirmPassword.value) {
+                passwordError.style.display = 'block';
+            } else {
+                passwordError.style.display = 'none';
+            }
+        }
+
+        form.addEventListener('submit', function(e) {
+            if (password.value !== confirmPassword.value) {
+                e.preventDefault();
+                passwordError.style.display = 'block';
+            }
+        });
+
+        function togglePassword(fieldId, button) {
+            const field = document.getElementById(fieldId);
+            if (field.type === "password") {
+                field.type = "text";
+                button.textContent = "Hide";
+            } else {
+                field.type = "password";
+                button.textContent = "Show";
+            }
+        }
+    </script>
+</body>
+</html>

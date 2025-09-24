@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome to Quizzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #fce4ec, #e3f2fd);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .main-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 30px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 1.2s ease-out;
+      max-width: 1100px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .app-info, .dev-info {
+      flex: 1 1 400px;
+      padding: 1.5rem;
+      border-radius: 20px;
+      background-color: #fafafa;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      color: #d32f2f;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      animation: slideDown 1s ease-out;
+    }
+
+    .animated-border {
+      height: 4px;
+      width: 80px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(90deg, #d32f2f, #1e88e5);
+      border-radius: 10px;
+      animation: moveGradient 2s infinite linear;
+    }
+
+    img.banner {
+      width: 140px;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      animation: float 3s ease-in-out infinite, popIn 1s ease-out;
+    }
+
+    p.description {
+      color: #555;
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+      line-height: 1.5;
+      animation: slideUp 1s ease-out;
+    }
+
+    .tagline {
+      color: #333;
+      font-weight: 600;
+      font-size: 1.1rem;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    .begin-button {
+      margin-top: 1.2rem;
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      animation: fadeIn 1.4s ease-out;
+    }
+
+    .begin-button:hover {
+      background-color: #b71c1c;
+      transform: scale(1.05);
+    }
+
+    .dev-card {
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 15px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      animation: popIn 1s ease-out;
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .dev-card:hover {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .dev-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2px solid #d32f2f;
+      object-fit: cover;
+    }
+
+    .dev-details {
+      text-align: left;
+    }
+
+    .dev-details h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    .dev-details p {
+      margin: 3px 0 0;
+      font-size: 0.9rem;
+      color: #777;
+    }
+
+    /* Popup Modal */
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 100vw;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.3s ease;
+      z-index: 9999;
+    }
+
+    .popup.show {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: popIn 0.6s ease-out;
+    }
+
+    .popup-content h2 {
+      color: #1e88e5;
+      margin-bottom: 1rem;
+    }
+
+    .popup-content p {
+      color: #333;
+      font-size: 1rem;
+    }
+
+    /* Animation for click on dev-card */
+    @keyframes clickPop {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+      50% {
+        transform: scale(1.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    .dev-card.clicked {
+      animation: clickPop 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes moveGradient {
+      0% { background-position: 0%; }
+      100% { background-position: 100%; }
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Left Section: App Info -->
+    <div class="app-info">
+      <h1>Quizzer</h1>
+      <div class="animated-border"></div>
+      <img src="../static/image/quiz_image.jpeg"  alt="Quiz App" class="banner" />
+      <p class="description">
+        Quizzer is a smart quiz app designed for students and competitive learners. Test your skills, track your progress, and enjoy an interactive learning experience.
+      </p>
+      <p class="tagline">"Learn. Compete. Conquer."</p>
+      <button class="begin-button" onclick="showPopup()">Begin Here</button>
+    </div>
+
+    <!-- Right Section: Developer Info -->
+    <div class="dev-info">
+      <h1>Meet the Developers</h1>
+      <div class="animated-border"></div>
+
+      <div class="dev-card">
+        <img src="../static/image/profile_dinesh.png" alt="Dinesh Singh Dhami">
+        <div class="dev-details">
+          <h3>Dinesh Singh Dhami</h3>
+          <p>Team Lead & Backend Developer</p>
+        </div>
+      </div>
+
+      <div class="dev-card">
+        <img src="../static/image/quiz_image.jpeg" alt="Samir Bist">
+        <div class="dev-details">
+          <h3>Samir Bist</h3>
+          <p>Frontend Developer</p>
+        </div>
+      </div>
+
+      <div class="dev-card">
+        <img src="../static/image/quiz_image.jpeg" alt="Dipak Shyada">
+        <div class="dev-details">
+          <h3>Dipak Shyada</h3>
+          <p>UI/UX Designer</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Popup -->
+  <div class="popup" id="welcomePopup">
+    <div class="popup-content">
+      <h2>Welcome to Quizzer!</h2>
+      <p>Redirecting to login page...</p>
+    </div>
+  </div>
+
+  <script>
+  const loginUrl = "{{ url_for('login') }}";
+
+  function showPopup() {
+    const popup = document.getElementById('welcomePopup');
+    popup.classList.add('show');
+
+    setTimeout(() => {
+      window.location.href = loginUrl;
+    }, 2500);
+  }
+
+  // Animate developer cards on click
+  document.querySelectorAll('.dev-card').forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.remove('clicked');
+      void card.offsetWidth;
+      card.classList.add('clicked');
+    });
+  });
+</script>
+
+</body>
+</html>

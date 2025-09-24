@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quizzer - Login / Register</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ====== General Styles ====== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+body { display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #00bcd4, #00796b); overflow: hidden; position: relative; }
+
+/* Floating background circles */
+.circle { position: absolute; border-radius: 50%; opacity: 0.15; animation: float 10s infinite ease-in-out alternate; }
+.circle1 { width: 200px; height: 200px; top: -50px; left: -50px; background: #fff; }
+.circle2 { width: 300px; height: 300px; bottom: -100px; right: -80px; background: #000; animation-duration: 12s; }
+
+/* Container */
+.container {
+    width: 750px; max-width: 95%; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    display: flex; overflow: hidden; position: relative; z-index: 1; justify-content: center; align-items: center;
+    transition: height 0.5s ease;
+    padding: 20px 0;
+}
+
+/* Forms */
+.form-container { width: 50%; padding: 20px 25px; transition: all 0.6s ease-in-out; display: flex; flex-direction: column; justify-content: center; }
+.login-container { position: absolute; left: 0; top: 50%; transform: translateY(-50%); transition: all 0.6s ease-in-out; }
+.register-container { position: absolute; left: 0; top: 50%; transform: translateY(-50%); opacity: 0; pointer-events: none; transition: all 0.6s ease-in-out; }
+.container.show-register .register-container { opacity: 1; pointer-events: all; left: 50%; }
+.container.show-register .login-container { opacity: 0; pointer-events: none; left: -50%; }
+
+/* Titles */
+.form-container h2 { text-align: center; color: #00796b; margin-bottom: 20px; font-size: 1.8rem; }
+
+/* Inputs */
+.input-field { margin-bottom: 10px; position: relative; }
+.input-field input {
+    width: 100%; padding: 10px 35px 10px 15px; border-radius: 25px; border: 2px solid #ddd; outline: none;
+    transition: 0.3s; font-size: 0.95rem;
+}
+.input-field input:focus { border-color: #00bcd4; box-shadow: 0 0 6px rgba(0,188,212,0.3); }
+
+/* Show/Hide password icon */
+.input-field .toggle-password { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; }
+
+/* Error messages */
+.input-field .error { color: red; font-size: 0.75rem; margin-top: 2px; min-height: 14px; }
+.error-field { border-color: red !important; }
+
+/* Buttons */
+button { width: 100%; padding: 12px; border: none; border-radius: 25px;
+    background: linear-gradient(45deg, #00bcd4, #00796b); color: #fff; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 10px; transition: 0.3s; }
+button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+/* Toggle Links */
+.toggle-text { text-align: center; font-size: 0.85rem; margin-top: 5px; }
+.toggle-text a { color: #00796b; text-decoration: none; font-weight: bold; transition: 0.3s; }
+.toggle-text a:hover { color: #00bcd4; }
+
+/* Forgot Password */
+.forgot-password { text-align: center; margin-bottom: 10px; font-size: 0.75rem; }
+.forgot-password a { color: #00796b; text-decoration: none; font-weight: bold; }
+.forgot-password a:hover { color: #00bcd4; }
+
+/* Overlay */
+.overlay-container {
+    position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
+    background: linear-gradient(135deg, #00bcd4, #00796b);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    color: #fff; text-align: center; padding: 40px 20px; transition: all 0.6s ease-in-out;
+    border-radius: 0 20px 20px 0;
+}
+.container.show-register .overlay-container { left: 0; border-radius: 20px 0 0 20px; }
+.overlay-container h2 { font-size: 2rem; margin-bottom: 15px; }
+.overlay-container p { font-size: 0.95rem; margin-bottom: 20px; }
+.overlay-container button { background: transparent; border: 2px solid #fff; padding: 10px 20px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+.overlay-container button:hover { background: #fff; color: #00796b; }
+
+/* Social Buttons */
+.social-login { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+.social-login button {
+    width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; transition: 0.3s;
+}
+.social-login button:hover { transform: scale(1.2); }
+.google-btn { background: #db4437; color: #fff; }
+.facebook-btn { background: #4267B2; color: #fff; }
+
+/* Flash messages */
+.flash { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 9999; color: #fff; opacity: 1; font-weight: bold; text-align: center; min-width: 200px; }
+.flash-success { background: #4CAF50; }
+.flash-danger { background: #f44336; }
+.flash-warning { background: #ff9800; }
+
+/* Responsive */
+@media(max-width: 768px) {
+    body {
+        align-items: center; /* vertically center */
+        padding-top: 0;
+        overflow-y: auto;
+        min-height: 100vh;
+    }
+    .container {
+        flex-direction: column;
+        width: 90%;
+        max-width: 400px;
+        height: auto !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .overlay-container { display: none; }
+    .login-container, .register-container {
+        position: relative !important;
+        width: 100%;
+        opacity: 1 !important;
+        pointer-events: all !important;
+        transform: translateY(0) !important;
+        transition: none;
+    }
+    .register-container { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating circles -->
+<div class="circle circle1"></div>
+<div class="circle circle2"></div>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="container" id="container">
+
+    <!-- Login Form -->
+    <div class="form-container login-container">
+        <form id="loginForm" action="{{ url_for('login') }}" method="POST">
+            <h2>Login</h2>
+            <div class="input-field">
+                <input type="text" name="identifier" placeholder="Email or Username">
+                <div class="error"></div>
+            </div>
+            <div class="input-field">
+                <input type="password" name="password" placeholder="Password" id="loginPassword">
+                <i class="fas fa-eye toggle-password" toggle="#loginPassword"></i>
+                <div class="error"></div>
+            </div>
+            <button type="submit">Login</button>
+            <div class="forgot-password">
+                <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+            </div>
+            <div class="social-login">
+                <button type="button" class="google-btn" onclick="window.location.href='/login/google'"><i class="fab fa-google"></i></button>
+                <button type="button" class="facebook-btn"><i class="fab fa-facebook-f"></i></button>
+            </div>
+            <div class="toggle-text">Don't have an account? <a href="#" id="showRegister">Sign Up</a></div>
+        </form>
+    </div>
+
+    <!-- Register Form -->
+    <div class="form-container register-container">
+        <form id="registerForm" action="{{ url_for('register') }}" method="POST">
+            <h2>Register</h2>
+            <div class="input-field"><input type="text" name="first_name" placeholder="First Name"><div class="error"></div></div>
+            <div class="input-field"><input type="text" name="last_name" placeholder="Last Name"><div class="error"></div></div>
+            <div class="input-field"><input type="text" name="username" placeholder="Username"><div class="error"></div></div>
+            <div class="input-field"><input type="email" name="email" placeholder="Email"><div class="error"></div></div>
+            <div class="input-field">
+                <input type="password" name="password" placeholder="Password" id="regPassword">
+                <i class="fas fa-eye toggle-password" toggle="#regPassword"></i>
+                <div class="error"></div>
+            </div>
+            <div class="input-field">
+                <input type="password" name="confirm_password" placeholder="Confirm Password" id="regConfirmPassword">
+                <i class="fas fa-eye toggle-password" toggle="#regConfirmPassword"></i>
+                <div class="error"></div>
+            </div>
+            <button type="submit">Sign Up</button>
+            <div class="social-login">
+                <button type="button" class="google-btn"><i class="fab fa-google"></i></button>
+                <button type="button" class="facebook-btn"><i class="fab fa-facebook-f"></i></button>
+            </div>
+            <div class="toggle-text">Already have an account? <a href="#" id="showLogin">Login</a></div>
+        </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay-container">
+        <h2 id="overlayTitle">Welcome to Quizzer!</h2>
+        <p id="overlayText">Engage in quizzes, challenge friends, and boost your knowledge!</p>
+        <button id="overlayBtn">Get Started</button>
+    </div>
+</div>
+
+<script>
+// JS logic
+const container = document.getElementById('container');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const overlayBtn = document.getElementById('overlayBtn');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayText = document.getElementById('overlayText');
+const password = document.getElementById('regPassword');
+const confirmPassword = document.getElementById('regConfirmPassword');
+
+// Adjust container height
+function adjustContainerHeight() {
+    const activeForm = container.classList.contains('show-register') ? registerForm : loginForm;
+    const newHeight = activeForm.scrollHeight + 60;
+    container.style.height = newHeight + 'px';
+    if(container.classList.contains('show-register')){
+        overlayTitle.textContent = "Already have an account?";
+        overlayText.textContent = "Click below to login.";
+        overlayBtn.textContent = "Login";
+    } else {
+        overlayTitle.textContent = "New here?";
+        overlayText.textContent = "Click below to sign up.";
+        overlayBtn.textContent = "Sign Up";
+    }
+}
+window.addEventListener('load', adjustContainerHeight);
+
+// Mobile friendly toggle
+function showRegisterMobile() {
+    if(window.innerWidth <= 768){
+        document.querySelector('.login-container').style.display = 'none';
+        document.querySelector('.register-container').style.display = 'block';
+        window.scrollTo(0,0);
+    } else {
+        container.classList.add('show-register'); adjustContainerHeight();
+    }
+}
+
+function showLoginMobile() {
+    if(window.innerWidth <= 768){
+        document.querySelector('.login-container').style.display = 'block';
+        document.querySelector('.register-container').style.display = 'none';
+        window.scrollTo(0,0);
+    } else {
+        container.classList.remove('show-register'); adjustContainerHeight();
+    }
+}
+
+// Toggle forms
+document.getElementById('showRegister').addEventListener('click', e => { e.preventDefault(); showRegisterMobile(); });
+document.getElementById('showLogin').addEventListener('click', e => { e.preventDefault(); showLoginMobile(); });
+overlayBtn.addEventListener('click', () => {
+    if(window.innerWidth <= 768){
+        const loginVisible = document.querySelector('.login-container').style.display !== 'none';
+        if(loginVisible){ showRegisterMobile(); } else { showLoginMobile(); }
+    } else {
+        container.classList.toggle('show-register'); adjustContainerHeight();
+    }
+});
+
+// Show/hide password
+document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', () => {
+        const input = document.querySelector(icon.getAttribute('toggle'));
+        if(input.type === 'password'){ input.type = 'text'; icon.classList.replace('fa-eye','fa-eye-slash'); } 
+        else{ input.type = 'password'; icon.classList.replace('fa-eye-slash','fa-eye'); }
+    });
+});
+
+// Validation functions
+function validateField(input){
+    const errorDiv = input.parentElement.querySelector('.error');
+    if(input.value.trim() === ''){
+        input.classList.add('error-field');
+        errorDiv.textContent = input.name.replace('_',' ').replace(/\b\w/g, l => l.toUpperCase()) + " is required";
+        return false;
+    } else{
+        input.classList.remove('error-field');
+        errorDiv.textContent = '';
+        return true;
+    }
+}
+
+// Login submit
+loginForm.addEventListener('submit', e => {
+    let valid = true;
+    const identifierInput = loginForm.querySelector('input[name="identifier"]');
+    if(identifierInput.value.trim() === ''){
+        identifierInput.classList.add('error-field');
+        identifierInput.parentElement.querySelector('.error').textContent = 'Email or Username is required';
+        valid = false;
+    } else {
+        identifierInput.classList.remove('error-field');
+        identifierInput.parentElement.querySelector('.error').textContent = '';
+    }
+    loginForm.querySelectorAll('input[type="password"]').forEach(input => { if(!validateField(input)) valid=false; });
+    if(!valid) { e.preventDefault(); adjustContainerHeight(); }
+});
+
+// Register submit
+registerForm.addEventListener('submit', e => {
+    let valid = true;
+    registerForm.querySelectorAll('input').forEach(input => {
+        if(input.name==='confirm_password'){ 
+            if(input.value !== password.value){ 
+                input.classList.add('error-field'); 
+                input.parentElement.querySelector('.error').textContent='Passwords do not match';
+                valid=false;
+            }
+        }
+        else { if(!validateField(input)) valid=false; }
+    });
+    if(!valid) { e.preventDefault(); adjustContainerHeight(); }
+});
+
+// Auto hide flash messages
+setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(msg => {
+        msg.style.opacity = 0;
+        setTimeout(() => { msg.remove(); }, 500);
+    });
+}, 2000);
+</script>
+
+</body>
+</html>

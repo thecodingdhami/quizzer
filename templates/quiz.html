@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== General Reset ===== */
+  * { box-sizing: border-box; margin:0; padding:0; font-family:'Montserrat', sans-serif; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #00bcd4, #00796b);
+    color: #111827;
+    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+  }
+
+  /* Floating Circles */
+  .circle { position:absolute; border-radius:50%; opacity:0.15; animation: float 10s infinite ease-in-out alternate; }
+  .circle1 { width:200px; height:200px; top:-50px; left:-50px; background:#fff; }
+  .circle2 { width:300px; height:300px; bottom:-100px; right:-80px; background:#000; animation-duration:12s; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(30px); } }
+
+  /* Card Layout */
+  .quiz-card {
+    background:#fff;
+    border-radius:20px;
+    padding:30px;
+    width:100%;
+    max-width:700px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    position:relative;
+    z-index:1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: 90vh;
+    transition: transform 0.3s, background 0.3s, color 0.3s;
+  }
+  .quiz-card:hover { transform: translateY(-5px); }
+
+  /* Header */
+  h1 { 
+    text-align:center;
+    font-size:36px;
+    font-weight:700;
+    color:#00796b;
+    margin-bottom:25px;
+  }
+
+  /* Timer & Score */
+  .status-bar {
+    display:flex;
+    justify-content:space-between;
+    font-weight:600;
+    margin-bottom:20px;
+  }
+  .status-bar span { font-weight:bold; }
+
+  /* Progress Bar */
+  .progress-container {
+    width:100%;
+    background:#e5e7eb;
+    height:12px;
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:25px;
+  }
+  .progress-bar {
+    height:100%;
+    width:0%;
+    background: linear-gradient(45deg, #00bcd4, #00796b);
+    border-radius:10px;
+    transition: width 1s linear;
+  }
+
+  /* No Quiz Message */
+  #noQuizMsg {
+    display:none;
+    text-align:center;
+    color:#d32f2f;
+    font-weight:700;
+    font-size:18px;
+    margin-bottom:20px;
+  }
+
+  /* Question */
+  .question { display:none; margin-bottom:25px; }
+  .question.active { display:block; }
+  .question h2 {
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:15px;
+    color:#00796b;
+  }
+  .choices label {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 15px;
+    border-radius:12px;
+    border:1px solid #e5e7eb;
+    background:#fafafa;
+    cursor:pointer;
+    transition: all 0.3s;
+  }
+  .choices label:hover { background:#e0f7fa; border-color:#00bcd4; }
+  .choices input[type="radio"] { accent-color:#00796b; }
+
+  /* Correct/Incorrect */
+  .correct { background:#ecfdf5 !important; border-color:#065f46 !important; }
+  .incorrect { background:#fef2f2 !important; border-color:#991b1b !important; }
+
+  /* Submit Button Container fixed bottom-left */
+  #submitBtnContainer {
+    text-align: left; /* align left */
+    margin-top: 20px;
+  }
+
+  /* Submit Button */
+  #submitBtn {
+    background: linear-gradient(45deg, #00bcd4, #00796b);
+    color:#fff;
+    font-weight:700;
+    padding:12px 24px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    transition:0.3s;
+    display:none;
+  }
+  #submitBtn:hover { opacity:0.9; transform: translateY(-2px); }
+
+  /* Dark mode */
+  body.dark { background:#121212; color:#fff; }
+  body.dark .quiz-card { background:#1e1e1e; color:#fff; }
+  body.dark .choices label { background:#2a2a2a; color:#fff; border-color:#555; }
+  body.dark .choices label.correct { background:#065f46; color:#fff; }
+  body.dark .choices label.incorrect { background:#991b1b; color:#fff; }
+
+</style>
+</head>
+<body>
+  <!-- Floating circles -->
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+
+  <div class="quiz-card">
+    <div>
+      <h1>Quiz Time!</h1>
+
+      <!-- No Quiz Message -->
+      <div id="noQuizMsg">No quiz available for this semester!</div>
+
+      <!-- Timer & Score -->
+      <div class="status-bar">
+        <div>Time Left: <span id="timer">15</span> sec</div>
+        <div>Score: <span id="scoreDisplay">0</span></div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+
+      <form id="quizForm" method="POST" action="{{ url_for('submit_quiz') }}">
+        {% for q in questions %}
+        <div class="question" data-id="{{ q.id }}" data-correct-index="{{ q.correct_index }}">
+          <h2>{{ loop.index }}. {{ q.question }}</h2>
+          <div class="choices">
+            <label><input type="radio" name="q{{ q.id }}" value="0" required> {{ q.choice1 }}</label>
+            <label><input type="radio" name="q{{ q.id }}" value="1"> {{ q.choice2 }}</label>
+            <label><input type="radio" name="q{{ q.id }}" value="2"> {{ q.choice3 }}</label>
+            <label><input type="radio" name="q{{ q.id }}" value="3"> {{ q.choice4 }}</label>
+          </div>
+        </div>
+        {% endfor %}
+        <input type="hidden" name="score" id="score">
+        <input type="hidden" name="username" value="{{ username }}">
+      </form>
+    </div>
+
+    <!-- Submit Button fixed at bottom-left -->
+    <div id="submitBtnContainer">
+      <button type="button" id="submitBtn">Submit Quiz</button>
+    </div>
+  </div>
+
+<script>
+  // ======= Shuffle Function =======
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // ======= Questions & Options Randomization =======
+  let questions = Array.from(document.querySelectorAll('.question'));
+  questions = shuffleArray(questions); // Shuffle questions
+  const quizForm = document.getElementById('quizForm');
+  questions.forEach(q => quizForm.appendChild(q)); // Re-append in shuffled order
+
+  // Update question numbers after shuffling
+  questions.forEach((q, idx) => {
+    const h2 = q.querySelector('h2');
+    const text = h2.textContent;
+    const parts = text.split('. ');
+    if(parts.length > 1){
+      h2.textContent = (idx+1) + '. ' + parts.slice(1).join('. ');
+    }
+  });
+
+  // Shuffle options for each question
+  questions.forEach(q => {
+    const choicesDiv = q.querySelector('.choices');
+    const labels = Array.from(choicesDiv.querySelectorAll('label'));
+    const correctIndex = parseInt(q.getAttribute('data-correct-index'));
+
+    let choiceArray = labels.map((label, index) => ({
+      label,
+      index
+    }));
+
+    shuffleArray(choiceArray);
+    choicesDiv.innerHTML = '';
+
+    choiceArray.forEach((choiceObj, newIndex) => {
+      choicesDiv.appendChild(choiceObj.label);
+      choiceObj.label.querySelector('input').value = newIndex;
+      if(choiceObj.index === correctIndex){
+        q.setAttribute('data-correct-index', newIndex);
+      }
+    });
+  });
+
+  // ======= Quiz Functionality =======
+  const timerSpan = document.getElementById('timer');
+  const submitBtn = document.getElementById('submitBtn');
+  const scoreInput = document.getElementById('score');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const progressBar = document.getElementById('progressBar');
+
+  let currentQuestion = 0;
+  let timeLeft = 15;
+  let score = 0;
+  let timer;
+
+  function showQuestion(index){
+    const noQuizMsg = document.getElementById('noQuizMsg');
+
+    if(questions.length === 0){
+      noQuizMsg.style.display = 'block';
+      quizForm.style.display = 'none';
+      progressBar.style.width = '0%';
+      submitBtn.style.display = 'none';
+      timerSpan.textContent = '0';
+      scoreDisplay.textContent = '0';
+      return;
+    } else {
+      noQuizMsg.style.display = 'none';
+      quizForm.style.display = 'block';
+    }
+
+    questions.forEach((q,i)=> q.classList.toggle('active', i===index));
+    updateProgressBar();
+    resetTimer();
+  }
+
+  function updateProgressBar(){
+    const percent = (currentQuestion)/questions.length*100;
+    progressBar.style.width = percent + '%';
+  }
+
+  function resetTimer(){
+    clearInterval(timer);
+    timeLeft=15;
+    timerSpan.textContent=timeLeft;
+
+    const endPercent = ((currentQuestion+1)/questions.length)*100;
+    progressBar.style.transition=`width ${timeLeft}s linear`;
+    progressBar.style.width=endPercent + '%';
+
+    timer = setInterval(()=>{
+      timeLeft--;
+      timerSpan.textContent = timeLeft;
+      if(timeLeft<=0) checkAnswerAndNext();
+    },1000);
+  }
+
+  function checkAnswerAndNext(){
+    clearInterval(timer);
+    const current = questions[currentQuestion];
+    const selected = current.querySelector('input[type="radio"]:checked');
+    const correctAnswerIndex = parseInt(current.getAttribute('data-correct-index'));
+    const choices = current.querySelectorAll("label");
+
+    if(selected){
+      const selectedIndex = parseInt(selected.value);
+      current.querySelectorAll('input[type="radio"]').forEach(r=>r.disabled=true);
+
+      choices.forEach((label, idx)=>{
+        label.classList.remove("correct","incorrect");
+        if(idx===correctAnswerIndex) label.classList.add("correct");
+        if(idx===selectedIndex && selectedIndex!==correctAnswerIndex) label.classList.add("incorrect");
+      });
+
+      if(selectedIndex===correctAnswerIndex){
+        score++;
+        scoreDisplay.textContent = score;
+      }
+    }
+
+    setTimeout(()=>{
+      currentQuestion++;
+      if(currentQuestion<questions.length) showQuestion(currentQuestion);
+      else {
+        scoreInput.value = score;
+        progressBar.style.transition='width 0.5s ease';
+        progressBar.style.width='100%';
+        submitBtn.style.display='inline-block';
+      }
+    },1000);
+  }
+
+  questions.forEach(q=>{
+    q.addEventListener('change',()=>checkAnswerAndNext());
+  });
+
+  showQuestion(0);
+
+  submitBtn.addEventListener('click',()=>quizForm.submit());
+</script>
+</body>
+</html>

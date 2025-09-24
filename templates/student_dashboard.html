@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quizzer App Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ===== General Styles ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #00bcd4, #00796b);
+  color: #333;
+  position: relative;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Floating circles */
+.circle { position: absolute; border-radius: 50%; opacity: 0.15; animation: float 10s infinite ease-in-out alternate; }
+.circle1 { width: 200px; height: 200px; top: -50px; left: -50px; background: #fff; }
+.circle2 { width: 300px; height: 300px; bottom: -100px; right: -80px; background: #000; animation-duration: 12s; }
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(30px); } }
+
+/* Header */
+.header {
+  background: rgba(0,0,0,0.35);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  position: relative;
+  z-index: 1;
+  border-radius: 0 0 20px 20px;
+  backdrop-filter: blur(6px);
+  flex-wrap: wrap;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  transition: all 0.3s ease-in-out;
+}
+.header .left { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; }
+.header .left img {
+  width: 45px; height: 45px; cursor: pointer;
+  border-radius: 50%; object-fit: cover; border: 2px solid #fff;
+}
+.header .title { 
+  font-size: 20px; 
+  font-weight: bold; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.header .right { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; justify-content: flex-end; min-width: 120px; }
+.header .right span:first-child { 
+  font-size: 18px; 
+  font-weight: bold; 
+  white-space: nowrap; 
+  background: linear-gradient(45deg, #ffd54f, #ff6f61); 
+  -webkit-background-clip: text;  /* Chrome, Safari */
+  background-clip: text;          /* Standard property for compatibility */
+  -webkit-text-fill-color: transparent; 
+  animation: gradientMove 3s infinite linear; 
+}
+@keyframes gradientMove { 0% { background-position: 0 0; } 100% { background-position: 200% 0; } }
+#modeToggle { font-size: 20px; cursor: pointer; transition: transform 0.2s; }
+#modeToggle:hover { transform: scale(1.2); }
+
+/* Cards */
+.card { background: #fff; margin: 25px; padding: 25px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); transition: transform 0.3s, background 0.3s, color 0.3s; position: relative; z-index: 1; }
+.card:hover { transform: translateY(-5px); }
+.card h2 { color: #00796b; margin-bottom: 15px; }
+.card p { margin-bottom: 20px; font-size: 16px; }
+
+/* Buttons */
+.btn { padding: 12px 20px; border: none; border-radius: 25px; background: linear-gradient(45deg, #00bcd4, #00796b); color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; margin: 5px 8px 5px 0; }
+.btn:hover { opacity: 0.9; transform: translateY(-2px); }
+.logout-btn { background: #d62828; }
+.logout-btn:hover { background: #b71c1c; }
+body.dark .btn { background: linear-gradient(45deg, #006064, #004d40); }
+body.dark .logout-btn { background: #a71d1d; }
+
+/* Modal */
+#logoutConfirm { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+#logoutConfirm.hidden { display: none; }
+#logoutConfirm .modal { background: #fff; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); width: 320px; transition: background 0.3s, color 0.3s; }
+#logoutConfirm p { font-size: 18px; margin-bottom: 20px; }
+
+/* Footer */
+footer { text-align: center; padding: 20px; font-size: 14px; color: white; z-index: 1; position: relative; }
+.social-icons { margin-top: 10px; }
+.social-icons a { margin: 0 10px; color: white; font-size: 20px; transition: color 0.3s; }
+.social-icons a:hover { color: #ffd54f; }
+
+/* Utility */
+.hidden { display: none; }
+.sub-programs { margin-top: 10px; }
+body.dark .card { background: #1e1e1e; color: #fff; }
+body.dark #logoutConfirm .modal { background: #2a2a2a; color: #fff; }
+
+/* Responsive Header for Mobile */
+@media (max-width: 768px) {
+  .header { flex-direction: row; flex-wrap: nowrap; justify-content: space-between; padding: 15px 20px; }
+  .header .title { 
+    font-size: 16px; 
+    max-width: 60%; 
+    white-space: normal;  /* allow wrapping on mobile */
+    overflow: visible; 
+    text-overflow: clip; 
+  }
+  .header .right span:first-child { font-size: 16px; }
+  #modeToggle { font-size: 18px; }
+}
+@media (max-width: 480px) {
+  .header .title { font-size: 14px; max-width: 55%; }
+  .header .right span:first-child { font-size: 14px; }
+  #modeToggle { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Floating circles -->
+<div class="circle circle1"></div>
+<div class="circle circle2"></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="left">
+    <img id="profileAvatar" src="{{ url_for('static', filename='uploads/' + session['profile_pic']) if session.get('profile_pic') else 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}" alt="User Icon">
+    <span class="title">Welcome, {{ session.first_name or session.username }}</span>
+  </div>
+  <div class="right">
+    <span>Quizzer App</span>
+    <span id="modeToggle">🌙</span>
+  </div>
+</div>
+
+<!-- Main Cards -->
+<div class="card">
+  <h2>Welcome to Quizzer Student Dashboard</h2>
+  <p>Select your faculty and program to get started with quizzes tailored for you.</p>
+  <button class="btn" id="chooseFaculty">Choose Faculty</button><br>
+  <div id="facultyOptions" class="hidden">
+    <button class="btn faculty" data-target="sciencePrograms">Science & Technology</button>
+    <button class="btn faculty" data-target="managementPrograms">Management</button>
+  </div>
+  <div id="sciencePrograms" class="hidden sub-programs">
+    <button class="btn" onclick="window.location.href='becomputer'">BE Computer</button>
+    <button class="btn">BCA</button>
+    <button class="btn">BE Civil</button>
+  </div>
+  <div id="managementPrograms" class="hidden sub-programs">
+    <button class="btn">BBA</button>
+    <button class="btn">BBS</button>
+  </div>
+  <button class="btn logout-btn" id="logoutBtn">Logout</button>
+</div>
+
+<div class="card">
+  <h2>Quick Links</h2>
+  <p>Explore more features:</p>
+  <button class="btn">My Quizzes</button>
+  <button class="btn">Leaderboard</button>
+  <button class="btn">Take Random Quiz</button>
+</div>
+
+<div class="card">
+  <h2>Tip of the Day</h2>
+  <p>“Consistent practice helps you retain concepts longer. Try at least one quiz daily!”</p>
+</div>
+
+<!-- Logout Modal -->
+<div id="logoutConfirm" class="hidden">
+  <div class="modal">
+    <p>Are you sure you want to exit?</p>
+    <button class="btn" id="confirmYes">Yes</button>
+    <button class="btn logout-btn" id="confirmNo">No</button>
+  </div>
+</div>
+
+<footer>
+  &copy; 2025 Quizzer App. All rights reserved.
+  <div class="social-icons">
+    <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+    <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+    <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+  </div>
+</footer>
+
+<script>
+const chooseFacultyBtn = document.getElementById('chooseFaculty');
+const facultyOptions = document.getElementById('facultyOptions');
+const facultyBtns = document.querySelectorAll('.faculty');
+const subPrograms = document.querySelectorAll('.sub-programs');
+
+const logoutBtn = document.getElementById('logoutBtn');
+const logoutConfirm = document.getElementById('logoutConfirm');
+const confirmYes = document.getElementById('confirmYes');
+const confirmNo = document.getElementById('confirmNo');
+
+const modeToggle = document.getElementById('modeToggle');
+const body = document.body;
+
+document.getElementById('profileAvatar').addEventListener('click', () => {
+  window.location.href = "{{ url_for('userprofile') }}";
+});
+
+const savedTheme = localStorage.getItem('darkMode');
+if (savedTheme === 'true') body.classList.add('dark');
+modeToggle.textContent = body.classList.contains('dark') ? '☀️' : '🌙';
+modeToggle.addEventListener('click', () => {
+  body.classList.toggle('dark');
+  localStorage.setItem('darkMode', body.classList.contains('dark'));
+  modeToggle.textContent = body.classList.contains('dark') ? '☀️' : '🌙';
+});
+
+chooseFacultyBtn.addEventListener('click', () => {
+  facultyOptions.classList.toggle('hidden');
+  subPrograms.forEach(sub => sub.classList.add('hidden'));
+});
+
+facultyBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.target);
+    subPrograms.forEach(sub => sub.classList.add('hidden'));
+    target.classList.toggle('hidden');
+  });
+});
+
+logoutBtn.addEventListener('click', e => {
+  e.preventDefault();
+  logoutConfirm.classList.remove('hidden');
+});
+confirmNo.addEventListener('click', () => { logoutConfirm.classList.add('hidden'); });
+confirmYes.addEventListener('click', () => { window.location.href = "{{ url_for('logout') }}"; });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile • Quizzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* ===== General Reset ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, #00bcd4, #00796b);
+      color: #333;
+      position: relative;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Floating circles */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float 10s infinite ease-in-out alternate;
+    }
+    .circle1 { width: 200px; height: 200px; top: -50px; left: -50px; background: #fff; }
+    .circle2 { width: 300px; height: 300px; bottom: -100px; right: -80px; background: #000; animation-duration: 12s; }
+    @keyframes float { from { transform: translateY(0); } to { transform: translateY(30px); } }
+
+    /* Header */
+    .header {
+      background: rgba(0,0,0,0.3);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 35px;
+      position: relative;
+      z-index: 1;
+      border-radius: 0 0 20px 20px;
+      backdrop-filter: blur(6px);
+    }
+    .header .left { display: flex; align-items: center; gap: 12px; }
+    .header .left img {
+      width: 45px; height: 45px;
+      border-radius: 50%; object-fit: cover; border: 2px solid #fff;
+      cursor: pointer;
+    }
+    .header .left div { display:flex; flex-direction:column; }
+    .header .right a { color: #fff; text-decoration: none; font-weight: 600; margin-right:10px; }
+
+    /* Cards */
+    main{max-width:980px; margin:32px auto; padding:0 16px}
+    .card {
+      background: #fff;
+      margin: 25px 0;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      transition: transform 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+    .card:hover { transform: translateY(-5px); }
+    .section-title { color: #00796b; margin-bottom: 15px; font-size: 20px; font-weight:700; }
+    label, .hint, p { font-size: 14px; }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 25px;
+      background: linear-gradient(45deg, #00bcd4, #00796b);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      margin: 5px 8px 5px 0;
+    }
+    .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+    .btn.secondary { background: #111827; }
+    .btn.link { background:transparent; color:#00bcd4; box-shadow:none; padding:0; }
+    .logout-btn { background: #d62828; }
+    .logout-btn:hover { background: #b71c1c; }
+
+    /* Inputs */
+    input[type="text"], input[type="email"], input[type="password"]{
+      padding: 12px 14px; border:1px solid #e5e7eb; border-radius:10px;
+      outline:none; font-size:14px; background:#fff; width:100%;
+    }
+    input[disabled]{background:#f9fafb; color:#6b7280}
+
+    /* Layout */
+    .grid{display:grid; grid-template-columns: 1fr 2fr; gap:18px; align-items:center}
+    .row{display:flex; flex-direction:column; gap:8px}
+    .stack{display:flex; gap:12px; flex-wrap:wrap}
+    .avatar-wrap{display:flex; gap:18px; align-items:center}
+    .avatar-wrap img{width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid rgba(0,119,217,0.2)}
+
+    /* Divider */
+    .divider{height:1px; background:#e5e7eb; margin:12px 0 18px}
+
+    /* Hidden & Accordion */
+    .hidden{display:none}
+    .accordion{border:1px solid #e5e7eb; border-radius:10px; overflow:hidden}
+    .accordion-item + .accordion-item{border-top:1px solid #e5e7eb}
+    .accordion-header{background:#fafafa; padding:14px 16px; cursor:pointer; font-weight:600}
+    .accordion-content{padding:14px 16px; display:none}
+    .accordion-item.open .accordion-content{display:block}
+
+    /* Messages */
+    .msg{padding:10px 12px; border-radius:10px; font-size:14px; margin-top:10px}
+    .msg.ok{background:#ecfdf5; color:#065f46}
+    .msg.err{background:#fef2f2; color:#991b1b}
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ecfdf5;
+      color: #065f46;
+      border-left: 4px solid #0bab93;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-weight:600;
+      display:none;
+      z-index:1000;
+      animation: slideIn 0.4s ease-out;
+    }
+    @keyframes slideIn{
+      0%{transform: translateX(100%); opacity:0;}
+      100%{transform: translateX(0); opacity:1;}
+    }
+
+    /* Logout Modal */
+    #logoutConfirm {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    #logoutConfirm.hidden { display: none; }
+    #logoutConfirm .modal {
+      background: #fff; padding: 30px; border-radius: 20px;
+      text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      width: 320px;
+    }
+    #logoutConfirm p { font-size: 18px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+  <!-- Floating circles -->
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="left">
+      <img id="headerAvatar" src="{{ profile_pic_url or url_for('static', filename='img/default_avatar.png') }}" alt="Avatar">
+      <div>
+        <div style="font-weight:700;">{{ user.username }}</div>
+        <div style="font-size:12px; opacity:.9;">{{ user.email }}</div>
+      </div>
+    </div>
+    <div class="right">
+      <a class="back" href="{{ url_for('student_dashboard') }}">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <main>
+    <!-- Profile Card -->
+    <div class="card">
+      <div class="section-title">Profile</div>
+      <div class="avatar-wrap">
+        <img id="previewAvatar" src="{{ profile_pic_url or url_for('static', filename='img/default_avatar.png') }}" alt="Profile photo">
+        <div class="row" style="flex:1;">
+          <div class="grid">
+            <div class="row">
+              <label>Username</label>
+              <input type="text" value="{{ user.username }}" disabled>
+            </div>
+            <div class="row">
+              <label>Email</label>
+              <input type="email" value="{{ user.email }}" disabled>
+            </div>
+          </div>
+          <div class="stack">
+            <input id="photoInput" type="file" accept="image/*" class="hidden">
+            <button class="btn secondary" id="changePhotoBtn">Upload New Photo</button>
+            <button class="btn" id="savePhotoBtn" disabled>Save Photo</button>
+            <div class="hint">PNG/JPG up to 3MB.</div>
+          </div>
+          <div id="photoMsg" class="msg hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Card -->
+    <div class="card">
+      <div class="section-title">Security</div>
+      <div class="stack" style="justify-content:space-between">
+        <div>
+          <div style="font-weight:600">Password</div>
+          <div class="hint">Use a strong password you don’t reuse elsewhere.</div>
+        </div>
+        <button class="btn" id="editPwdBtn">Edit</button>
+      </div>
+      <div class="divider"></div>
+      <form id="pwdForm" class="grid hidden" autocomplete="off">
+        <input type="hidden" name="action" value="change_password">
+        <div class="row">
+          <label>New Password</label>
+          <div style="position:relative;">
+            <input id="newPassword" type="password" name="password" placeholder="Enter new password" minlength="8" required style="width:100%;">
+            <span id="toggleNewPwd" class="pwd-toggle" style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">👁️</span>
+          </div>
+        </div>
+        <div class="row">
+          <label>Confirm Password</label>
+          <div style="position:relative;">
+            <input id="confirmPassword" type="password" name="confirm_password" placeholder="Re-enter new password" minlength="8" required style="width:100%;">
+            <span id="toggleConfirmPwd" class="pwd-toggle" style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">👁️</span>
+          </div>
+        </div>
+        <div></div>
+        <div class="stack">
+          <button type="submit" class="btn">Request Change</button>
+          <button type="button" class="btn link" id="cancelPwdBtn">Cancel</button>
+        </div>
+        <div id="pwdMsg" class="msg hidden" style="grid-column:1/-1;"></div>
+      </form>
+    </div>
+
+    <!-- Help / FAQ -->
+    <div class="card">
+      <div class="section-title">Help</div>
+      <div class="accordion" id="helpAccordion">
+        <div class="accordion-item">
+          <div class="accordion-header">Support</div>
+          <div class="accordion-content">
+            For assistance, contact <b>quizzer1pro@gmail.com</b> or message us from the app’s Help menu.
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">FAQs</div>
+          <div class="accordion-content">
+            <p><b>How do I change my password?</b><br>Click <i>Edit</i> in the Security section, enter your new password twice, then press <i>Request Change</i>.</p>
+            <p><b>Can I change my email/username?</b><br>Not directly. Contact support to request changes.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">About</div>
+          <div class="accordion-content">
+            Quizzer helps students prepare with semester-based quizzes. © {{ current_year }} Quizzer.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Logout Confirmation Modal -->
+  <div id="logoutConfirm" class="hidden">
+    <div class="modal">
+      <p>Are you sure you want to logout?</p>
+      <button class="btn" id="confirmYes">Yes</button>
+      <button class="btn logout-btn" id="confirmNo">No</button>
+    </div>
+  </div>
+
+  <!-- Popup -->
+  <div id="successPopup" class="popup">Password changed successfully!</div>
+
+  <script>
+    /* === Profile Photo Upload === */
+    const changePhotoBtn = document.getElementById('changePhotoBtn');
+    const savePhotoBtn = document.getElementById('savePhotoBtn');
+    const photoInput = document.getElementById('photoInput');
+    const previewAvatar = document.getElementById('previewAvatar');
+    const headerAvatar = document.getElementById('headerAvatar');
+    const photoMsg = document.getElementById('photoMsg');
+    let selectedFile = null;
+
+    changePhotoBtn.addEventListener('click', () => photoInput.click());
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files[0];
+      if(!file) return;
+      if(!file.type.startsWith('image/')){ showPhotoMsg('Please select an image file.', false); return; }
+      if(file.size > 3*1024*1024){ showPhotoMsg('File too large (max 3MB).', false); return; }
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = e => { previewAvatar.src = e.target.result; savePhotoBtn.disabled = false; };
+      reader.readAsDataURL(file);
+      showPhotoMsg('Preview updated. Click "Save Photo" to apply.', true);
+    });
+    savePhotoBtn.addEventListener('click', async () => {
+      if(!selectedFile){ showPhotoMsg('Choose a photo first.', false); return; }
+      const form = new FormData();
+      form.append('profile_pic', selectedFile);
+      form.append('action', 'update_pic');
+      savePhotoBtn.disabled = true;
+      try {
+        const res = await fetch('{{ url_for("userprofile") }}', { method:'POST', body: form });
+        const data = await res.json();
+        if(data.ok){
+          showPhotoMsg('Profile photo updated.', true);
+          previewAvatar.src = data.filename ? `/static/uploads/${data.filename}` : previewAvatar.src;
+          headerAvatar.src = previewAvatar.src;
+        }else{
+          showPhotoMsg(data.error || 'Failed to update photo.', false);
+          savePhotoBtn.disabled = false;
+        }
+      } catch(e){
+        showPhotoMsg('Network error. Try again.', false);
+        savePhotoBtn.disabled = false;
+      }
+    });
+    function showPhotoMsg(text, ok){
+      photoMsg.textContent = text;
+      photoMsg.classList.remove('hidden','ok','err');
+      photoMsg.classList.add(ok ? 'ok' : 'err');
+    }
+
+    /* === Password Form === */
+    const editPwdBtn = document.getElementById('editPwdBtn');
+    const pwdForm = document.getElementById('pwdForm');
+    const cancelPwdBtn = document.getElementById('cancelPwdBtn');
+    const pwdMsg = document.getElementById('pwdMsg');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const successPopup = document.getElementById('successPopup');
+
+    editPwdBtn.addEventListener('click', () => {
+      pwdForm.classList.toggle('hidden');
+      pwdMsg.classList.add('hidden');
+      pwdMsg.textContent = '';
+    });
+    cancelPwdBtn.addEventListener('click', () => {
+      pwdForm.classList.add('hidden');
+      pwdMsg.classList.add('hidden');
+      pwdMsg.textContent = '';
+      newPassword.value = '';
+      confirmPassword.value = '';
+    });
+    function showPwdMsg(text, ok){
+      pwdMsg.textContent = text;
+      pwdMsg.classList.remove('hidden','ok','err');
+      pwdMsg.classList.add(ok ? 'ok' : 'err');
+    }
+
+    pwdForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      if(newPassword.value !== confirmPassword.value){ showPwdMsg('Passwords do not match.', false); return; }
+
+      const formData = new FormData();
+      formData.append('action', 'change_password');
+      formData.append('password', newPassword.value);
+      formData.append('confirm_password', confirmPassword.value);
+
+      try {
+        const res = await fetch('{{ url_for("userprofile") }}', { method:'POST', body: formData });
+        const data = await res.json();
+        if(data.ok){
+          showPwdMsg('Password updated successfully.', true);
+          successPopup.style.display = 'block';
+          setTimeout(()=>{successPopup.style.display='none';},3000);
+          pwdForm.classList.add('hidden');
+          newPassword.value = confirmPassword.value = '';
+        } else {
+          showPwdMsg(data.msg || data.error || 'Failed to change password.', false);
+        }
+      } catch(e){ showPwdMsg('Network error. Try again.', false); }
+
+    });
+
+    /* === Accordion === */
+    document.querySelectorAll('.accordion-header').forEach(header => {
+      header.addEventListener('click', ()=>{ const item = header.parentElement; item.classList.toggle('open'); });
+    });
+
+    /* === Password toggle visibility === */
+    document.getElementById('toggleNewPwd').addEventListener('click', ()=> togglePwd(newPassword));
+    document.getElementById('toggleConfirmPwd').addEventListener('click', ()=> togglePwd(confirmPassword));
+    function togglePwd(el){ el.type = el.type==='password' ? 'text':'password'; }
+
+    /* === Logout Modal === */
+    const logoutBtn = document.querySelector('.logout-btn');
+    const logoutConfirm = document.getElementById('logoutConfirm');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
+
+    if(logoutBtn){
+      logoutBtn.addEventListener('click', ()=> logoutConfirm.classList.remove('hidden'));
+    }
+    confirmNo.addEventListener('click', ()=> logoutConfirm.classList.add('hidden'));
+    confirmYes.addEventListener('click', ()=> window.location.href='{{ url_for("logout") }}');
+
+  </script>
+</body>
+</html>

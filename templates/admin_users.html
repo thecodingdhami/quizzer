@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #eef2f3, #8e9eab);
+      height: 100vh;
+      display: flex;
+      animation: fadeIn 1s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 30px;
+      padding-left: 10px;
+    }
+
+    .sidebar h2::before {
+      content: "🛠️";
+      margin-right: 10px;
+    }
+
+    .nav-button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 15px;
+      margin: 8px 0;
+      font-size: 16px;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.3s;
+      border-radius: 6px;
+    }
+
+    .nav-button:hover {
+      background-color: #34495e;
+    }
+
+    .logout-btn {
+      background: linear-gradient(to right, #ff4e50, #1e90ff);
+      border: none;
+      padding: 12px;
+      color: white;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background: linear-gradient(to right, #e53935, #0b72b9);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      animation: slideDown 0.4s ease forwards;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f9f9f9;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
+      text-align: center;
+      animation: slideDown 0.4s ease;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+    }
+
+    .modal-buttons button {
+      width: 90px;
+      margin: 0 10px;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .dev-container {
+      display: flex;
+      gap: 30px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .dev-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffffdd;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 150px;
+      text-align: center;
+    }
+
+    .dev-card img {
+      border-radius: 50%;
+      border: 2px solid #2c3e50;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px #ccc;
+    }
+
+    .choices button {
+      margin: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    .choices button.selected {
+      background-color: #0bab93;
+      color: white;
+    }
+
+    #submitQuiz {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+    }
+  </style>
+
+  <script>
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(sec => sec.classList.remove('active'));
+      const target = document.getElementById(sectionId);
+      if (target) target.classList.add('active');
+    }
+
+    function redirectToQuizzes() {
+      showSection('quizzesSection');
+      setTimeout(() => {
+        window.location.href = "/add_question";
+      }, 1000);
+    }
+
+    function confirmLogout() {
+      document.getElementById('logoutModal').style.display = 'block';
+    }
+
+    function cancelLogout() {
+      document.getElementById('logoutModal').style.display = 'none';
+    }
+
+    function proceedLogout() {
+      window.location.href = "/logout";
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('logoutModal');
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    window.onload = () => showSection('dashboardSection');
+  </script>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <h2>Admin Panel</h2>
+      <button class="nav-button" onclick="showSection('dashboardSection')">🏠 Dashboard</button>
+      <button class="nav-button" onclick="showSection('usersSection')">👥 View Users</button>
+      <button class="nav-button" onclick="redirectToQuizzes()">📝 Manage Quizzes</button>
+      <button class="nav-button" onclick="showReports()">📊 Reports</button>
+    </div>
+    <button class="logout-btn" onclick="confirmLogout()">🚪 Logout</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Dashboard -->
+    <div id="dashboardSection" class="section active">
+      <h2>Welcome to Quizzer Admin Panel 🎉</h2>
+      <p><strong>Quizzer</strong> is a dynamic quiz management platform that allows administrators to create, manage, and analyze quizzes with ease.</p>
+      <ul>
+        <li>👥 Manage and monitor users</li>
+        <li>📝 Create and edit quiz questions</li>
+        <li>📊 View performance reports</li>
+        <li>⚙️ Customize quiz settings</li>
+      </ul>
+
+      <h3 style="margin-top: 40px;">Developed By:</h3>
+      <div class="dev-container">
+        <div class="dev-card">
+          <img src="../static/image/profile_dinesh.png" alt="Dinesh Singh Dhami">
+          <h3>Dinesh Singh Dhami</h3>
+          <p>Team Lead & Backend Developer</p>
+        </div>
+        <div class="dev-card">
+          <img src="../static/image/quiz_image.jpeg" alt="Samir Bist">
+          <h3>Samir Bist</h3>
+          <p>Frontend Developer</p>
+        </div>
+        <div class="dev-card">
+          <img src="../static/image/quiz_image.jpeg" alt="Dipak Shyada">
+          <h3>Dipak Shyada</h3>
+          <p>UI/UX Designer</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Section -->
+    <div id="usersSection" class="section">
+      <h2>Users List</h2>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.first_name }}</td>
+          <td>{{ user.last_name }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Quizzes Section -->
+    <div id="quizzesSection" class="section">
+      <h2>Redirecting to Quiz Management...</h2>
+    </div>
+
+    <!-- Reports Section -->
+    <div id="reportsSection" class="section">
+      <h2>Quiz Reports</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Score</th>
+            <th>Submitted At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+          <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.username }}</td>
+            <td>{{ report.score }}</td>
+            <td>{{ report.submitted_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Settings Section -->
+    <div id="settingsSection" class="section">
+      <h2>Settings</h2>
+      <p>Configure quiz rules, roles, and system preferences here.</p>
+    </div>
+  </div>
+
+  <!-- Logout Modal -->
+  <div id="logoutModal" class="modal">
+    <div class="modal-content">
+      <p>Are you sure you want to logout?</p>
+      <div class="modal-buttons">
+        <button onclick="proceedLogout()">Yes</button>
+        <button onclick="cancelLogout()">No</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(sec => sec.classList.remove('active'));
+      const target = document.getElementById(sectionId);
+      if (target) target.classList.add('active');
+    }
+
+    function redirectToQuizzes() {
+      showSection('quizzesSection');
+      setTimeout(() => {
+        window.location.href = "/add_question";
+      }, 1000);
+    }
+
+    function confirmLogout() {
+      document.getElementById('logoutModal').style.display = 'block';
+    }
+
+    function cancelLogout() {
+      document.getElementById('logoutModal').style.display = 'none';
+    }
+
+    function proceedLogout() {
+      window.location.href = "/logout";
+    }
+
+    function showReports() {
+      showSection('reportsSection');
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('logoutModal');
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    window.onload = () => showSection('dashboardSection');
+  </script>
+</body>
+</html>

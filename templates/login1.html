@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        /* General styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom right, #f2eafc, #dbefff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        form {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        form h2 {
+            color: #1a4ed8;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        form input[type="text"],
+        form input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border 0.3s;
+            box-sizing: border-box;
+        }
+
+        form input[type="text"]:focus,
+        form input[type="password"]:focus {
+            border-color: #4d8eff;
+            outline: none;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            color: #3b82f6;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        form input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #3b82f6, #ef4444);
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        form input[type="submit"]:hover {
+            opacity: 0.9;
+        }
+
+        form p {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        form p a {
+            color: #ef4444;
+            text-decoration: none;
+        }
+
+        form p a:hover {
+            text-decoration: underline;
+        }
+
+        /* Password wrapper and toggle icon */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+            display: block;
+        }
+
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            width: 100%;
+            padding-right: 40px; /* space for the icon */
+            box-sizing: border-box;
+            height: 42px; /* fixed height for vertical alignment */
+            font-size: 14px;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            transition: border 0.3s;
+        }
+
+        .password-wrapper input[type="password"]:focus,
+        .password-wrapper input[type="text"]:focus {
+            border-color: #4d8eff;
+            outline: none;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #888;
+            user-select: none;
+            transition: color 0.3s;
+            height: 20px;
+            width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-password:hover {
+            color: #4d8eff;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            margin-top: 15px;
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background-color: #d73737;
+        }
+    </style>
+</head>
+<body>
+
+<form action="/login" method="POST">
+    <h2>Welcome to Quizzer 💡</h2>
+
+    <label for="identifier">Email or Username:</label>
+    <input type="text" name="identifier" placeholder="Enter your email or username" required>
+
+    <label for="password">Password:</label>
+    <div class="password-wrapper">
+        <input type="password" name="password" id="password" placeholder="Enter your password" required>
+        <span class="toggle-password" onclick="togglePassword()" title="Show/Hide Password">&#128065;</span>
+    </div>
+
+    <div class="forgot-password">
+        <a href="/forgot-password">Forgot password?</a>
+    </div>
+
+    <input type="submit" value="Login">
+
+    <p>No account? <a href="/register">Sign up</a></p>
+</form>
+
+<!-- Modal Error Popup -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="modal" id="errorModal" style="display: flex;">
+        <div class="modal-content">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+            <br>
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+  {% endif %}
+{% endwith %}
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.querySelector('.toggle-password');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.style.color = '#ef4444'; // change color when visible
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.style.color = '#888'; // default color
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('errorModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
