@@ -17,7 +17,7 @@ If you find a security vulnerability in Quizzer:
 
 * **Do not open a public issue.**
 * Instead, report it privately via email:
-  📧 **[dinesh.singh@example.com](mailto:dineshdhamidn@gmail.com)**
+  📧 **[dineshdhamidn@gmail.com](mailto:dineshdhamidn@gmail.com)**
 
 Please include:
 
