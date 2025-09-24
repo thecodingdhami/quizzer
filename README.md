@@ -86,7 +86,7 @@ pip install -r requirements.txt</pre>
 <h2 id="support">📞 Support</h2>
 <ul>
     <li>🐛 <strong>Bug Reports:</strong> <a href="https://github.com/thecodingdhami/quizzer/issues">Open an issue</a></li>
-    <li>💡 <strong>Feature Requests:</strong> <a href="https://github.com/thecodingdhami/quizzer/discussion">Start a discussion</a></li>
+    <li>💡 <strong>Feature Requests:</strong> <a href="https://github.com/thecodingdhami/quizzer/discussions">Start a discussion</a></li>
 </ul>
 
 <hr>
