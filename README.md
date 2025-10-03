@@ -81,7 +81,7 @@ pip install -r requirements.txt</pre>
 <p>We welcome contributions! Please see <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for guidelines.</p>
 
 <h2 id="license">📄 License</h2>
-<p>This project is licensed under the MIT License - see the <a href="https://github.com/thecodingdhami/quizzer/blob/main/LICENSE.md">LICENSE</a> file for details.</p>
+<p>This project is licensed under the CUSTOM License - see the <a href="https://github.com/thecodingdhami/quizzer/blob/main/LICENSE.md">LICENSE</a> file for details.</p>
 
 <h2 id="support">📞 Support</h2>
 <ul>
